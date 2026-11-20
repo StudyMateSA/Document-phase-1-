@@ -1,0 +1,380 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Study Mate ERD</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800&family=Space+Grotesk:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: four domain columns (identity, institution, planning, communication) on a dark neon canvas; cards are DOM, relations are an SVG overlay routed through column gaps. */
+:root{
+  color-scheme:dark;
+  --bg:#09061c; --bg2:#0f0a2b; --card:#120d33; --head:#1a1250; --line:#2c246d;
+  --text:#ebe8ff; --muted:#8f89c9; --faint:#5f59a0;
+  --purple:#b45cff; --cyan:#27d8ff; --violet:#7d5cff; --azure:#3d86ff;
+  --font-ui:'Vazirmatn',system-ui,sans-serif;
+  --font-head:'Space Grotesk','Vazirmatn',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{
+  background-color:var(--bg);
+  background-image:
+    radial-gradient(900px 500px at 12% -5%,rgba(180,92,255,.22),transparent 60%),
+    radial-gradient(900px 500px at 92% 8%,rgba(39,216,255,.16),transparent 60%),
+    linear-gradient(rgba(125,92,255,.06) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(125,92,255,.06) 1px,transparent 1px);
+  background-size:auto,auto,32px 32px,32px 32px;
+  color:var(--text); font-family:var(--font-ui); font-size:15px; line-height:1.7;
+  padding-block:28px 56px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+.wrap{max-width:1500px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+header{display:flex;flex-wrap:wrap;gap:16px 32px;justify-content:space-between;align-items:flex-end}
+h1{font-family:var(--font-head);font-size:clamp(28px,4vw,44px);line-height:1.1;margin:0;letter-spacing:-.01em;
+  background:linear-gradient(90deg,var(--purple),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 14px rgba(180,92,255,.45))}
+.sub{color:var(--muted);margin:8px 0 0;max-width:62ch}
+.stats{display:flex;gap:10px;flex-wrap:wrap}
+.stat{border:1px solid var(--line);background:rgba(18,13,51,.7);border-radius:10px;padding:8px 14px;min-width:92px;text-align:center}
+.stat b{display:block;font-family:var(--font-head);font-size:22px;color:var(--cyan);text-shadow:0 0 12px rgba(39,216,255,.6)}
+.stat span{font-size:12px;color:var(--muted)}
+.bar{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:var(--muted);align-items:center}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-inline-end:6px;vertical-align:-1px}
+.zoom{display:flex;gap:6px}
+.zoom button{font:inherit;font-size:13px;color:var(--text);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:4px 12px;cursor:pointer}
+.zoom button:hover{border-color:var(--cyan);box-shadow:0 0 12px -2px var(--cyan)}
+.zoom button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.canvas{border:1px solid var(--line);border-radius:14px;background:rgba(9,6,28,.72);overflow:auto;padding:0;box-shadow:0 0 40px -16px var(--purple) inset}
+#view{position:relative}
+#stage{position:absolute;left:0;top:0;transform-origin:0 0;direction:ltr}
+#links{position:absolute;left:0;top:0;pointer-events:none;overflow:visible}
+#links path.rel{fill:none;stroke-width:1.8;transition:opacity .15s}
+svg .sym{fill:none;stroke-width:1.8}
+svg .dot{fill:var(--bg);stroke-width:1.8}
+.dim{opacity:.1!important}
+.card{position:absolute;width:320px;background:var(--card);border:1px solid var(--c);border-radius:12px;
+  box-shadow:0 0 0 1px rgba(255,255,255,.02),0 0 26px -8px var(--c);transition:opacity .15s}
+.card:hover{box-shadow:0 0 34px -4px var(--c)}
+.card-h{padding:10px 14px 9px;border-bottom:1px solid var(--c);background:linear-gradient(180deg,var(--head),var(--card));border-radius:11px 11px 0 0}
+.card-h h3{margin:0;font-family:var(--font-head);font-size:16px;line-height:1.3;color:var(--c);text-shadow:0 0 10px var(--c);display:flex;justify-content:space-between;gap:8px}
+.card-h h3 small{font-family:var(--font-mono);font-size:10px;font-weight:400;color:var(--faint);text-shadow:none;align-self:center}
+.card-h p{margin:2px 0 0;font-size:12px;color:var(--muted);direction:rtl;text-align:right}
+.fields{padding:4px 0}
+.row{display:grid;grid-template-columns:30px 1fr auto;align-items:center;gap:0 6px;padding:3px 12px 3px 10px;font-family:var(--font-mono);font-size:12px;line-height:1.35}
+.row:hover{background:rgba(125,92,255,.1)}
+.row .n{color:var(--text);overflow:hidden;text-overflow:ellipsis}
+.row .t{color:var(--muted);font-size:11px;text-align:right}
+.row .t em{font-style:normal;color:var(--faint);margin-left:5px}
+.row .v{grid-column:2 / 4;font-size:10px;color:var(--faint);margin-top:-1px;letter-spacing:.01em}
+.b{font-size:9px;font-weight:600;border-radius:4px;padding:1px 0;text-align:center;border:1px solid transparent;letter-spacing:.04em}
+.b.PK{background:var(--purple);color:#14052b;box-shadow:0 0 8px var(--purple)}
+.b.FK{border-color:var(--cyan);color:var(--cyan)}
+.b.UQ{border-color:var(--violet);color:#b9a8ff}
+.row.pk .n{color:#e4c8ff;font-weight:600}
+.row.fk .n{color:#aef0ff}
+.note{border-top:1px dashed var(--line);margin:2px 0 0;padding:6px 14px 8px;font-family:var(--font-mono);font-size:10px;color:var(--faint);line-height:1.5}
+section.panel{border:1px solid var(--line);border-radius:14px;background:rgba(18,13,51,.72);padding:22px clamp(16px,3vw,28px)}
+section.panel h2{margin:0 0 14px;font-size:20px;font-weight:800;color:var(--text)}
+section.panel h2::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 10px var(--cyan);margin-inline-end:10px}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:760px;font-size:14px}
+th{text-align:right;color:var(--muted);font-weight:600;font-size:12px;padding:8px 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 10px;border-bottom:1px solid rgba(44,36,109,.55);vertical-align:top}
+tr.r:hover td{background:rgba(125,92,255,.09)}
+code{font-family:var(--font-mono);font-size:12.5px;color:#cbe9ff;direction:ltr;unicode-bidi:isolate}
+.card-pill{font-family:var(--font-mono);font-size:11px;border:1px solid var(--line);border-radius:6px;padding:1px 7px;color:var(--cyan);white-space:nowrap;direction:ltr;unicode-bidi:isolate;display:inline-block}
+ul.rules{margin:0;padding-inline-start:20px;display:grid;gap:8px}
+ul.rules li::marker{color:var(--purple)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<main class="wrap" dir="rtl" lang="fa">
+  <header>
+    <div>
+      <h1>Study Mate</h1>
+      <p class="sub">نمودار موجودیت‌رابطه (ERD) نسخه MVP. سه نقش اصلی دانش‌آموز، مشاور و موسسه روی یک جدول کاربران و یک جدول عضویت سوار شده‌اند تا مدل ساده بماند و هر جدول جزئیات کامل داشته باشد.</p>
+    </div>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <div class="bar">
+    <div class="legend" id="legend"></div>
+    <div class="zoom" role="group" aria-label="بزرگنمایی">
+      <button id="zout" type="button" aria-label="کوچک‌تر">−</button>
+      <button id="zfit" type="button">تطبیق با صفحه</button>
+      <button id="zin" type="button" aria-label="بزرگ‌تر">+</button>
+    </div>
+  </div>
+
+  <div class="canvas" id="canvas" tabindex="0" aria-label="نمودار ERD، با ماوس روی هر جدول بروید تا روابطش پررنگ شود">
+    <div id="view"><div id="stage"></div></div>
+  </div>
+
+  <section class="panel">
+    <h2>روابط و کاردینالیتی</h2>
+    <div class="tw">
+      <table>
+        <thead><tr><th>#</th><th>رابطه (کلید خارجی)</th><th>کاردینالیتی</th><th>قانون سامانه</th></tr></thead>
+        <tbody id="rels"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>تصمیم‌های طراحی</h2>
+    <ul class="rules">
+      <li><b>یک جدول کاربران برای همه نقش‌ها.</b> ورود با شماره تماس و OTP برای هر چهار نقش یکسان است. نقش در ستون <code>role</code> می‌ماند و اطلاعات پروفایل (شخصی و تحصیلی) در همین جدول است.</li>
+      <li><b>جدول عضویت موسسه.</b> مشاور و دانش‌آموز از طریق <code>institution_members</code> به موسسه وصل می‌شوند. دعوت‌نامه (نام، شماره، کد) همین‌جا ذخیره می‌شود و تا ثبت‌نام کاربر، <code>user_id</code> خالی است. ظرفیت مشاور و رشته یا مقطع دانش‌آموز هم روی همین ردیف است، پس یک مشاور در چند موسسه مستقل کار می‌کند.</li>
+      <li><b>تاریخچه تخصیص.</b> هر مشاور فعلی دانش‌آموز با <code>is_current = 1</code> مشخص می‌شود و با یک ایندکس یکتای فیلترشده فقط یک ردیف فعال برای هر دانش‌آموز مجاز است. با جابجایی، ردیف قبلی بسته می‌شود و سوابق برای مشاور جدید قابل مشاهده می‌ماند.</li>
+      <li><b>برنامه و گزارش در یک ردیف.</b> <code>study_tasks</code> هم برنامه‌ریزی مشاور (درس، فعالیت، زمان) و هم گزارش دانش‌آموز (ساعت، تست، توضیحات) را دارد. مقدار <code>locked_at</code> برابر ۲۴ ساعت بعد از ثبت اولیه است.</li>
+      <li><b>تیکت و پیام.</b> تیکت به یک تخصیص وصل است و می‌تواند به یک تکلیف روزانه اشاره کند. پیام‌ها با <code>kind</code> سؤال، پاسخ، تحلیل شبانه و بازخورد را پوشش می‌دهند.</li>
+      <li><b>خارج از MVP:</b> آزمون آنلاین، چت لحظه‌ای، گزارش خروجی و اعلان Push جدول جدا نگرفته‌اند. ثبت تاریخچه تغییرات مدیریتی (Audit Log) هم به نسخه بعد موکول شده است.</li>
+    </ul>
+  </section>
+</main>
+
+<script>
+/* ---------- data ---------- */
+var DOM = {
+  id:  {name:'هویت و ورود',      c:'#b45cff'},
+  org: {name:'موسسه و عضویت',    c:'#27d8ff'},
+  plan:{name:'برنامه و عملکرد',  c:'#7d5cff'},
+  com: {name:'ارتباط مشاور و دانش‌آموز', c:'#3d86ff'}
+};
+var T = [
+ {id:'auth_tokens',dom:'id',col:0,sub:'کد یکبارمصرف (OTP) و توکن تازه‌سازی نشست',
+  note:'OTP: انقضای ۲ دقیقه با سقف تلاش و ارسال · REFRESH: تا ۳۰ روز، با خروج باطل می‌شود · توکن دسترسی (JWT) ذخیره نمی‌شود',
+  f:[['id','int','PK'],['user_id','int','FK NULL','users.id'],['kind','varchar(8)','','OTP · REFRESH'],['phone','varchar(11)',''],['token_hash','varchar(128)',''],['expires_at','datetime2',''],['attempts','tinyint',''],['send_count','tinyint',''],['consumed_at','datetime2','NULL'],['revoked_at','datetime2','NULL'],['created_at','datetime2','']]},
+ {id:'users',dom:'id',col:1,sub:'حساب ورود و پروفایل هر چهار نقش',
+  note:'UQ (phone) · ستون‌های تحصیلی فقط برای دانش‌آموز و مشاور پر می‌شوند',
+  f:[['id','int','PK'],['role','varchar(12)','','STUDENT · ADVISOR · INSTITUTION · ADMIN'],['phone','varchar(11)','UQ'],['first_name','nvarchar(50)',''],['last_name','nvarchar(50)',''],['email','nvarchar(100)','NULL'],['birth_date','date','NULL'],['city','nvarchar(60)','NULL'],['education_level','nvarchar(40)','NULL'],['field_of_study','nvarchar(60)','NULL'],['school_or_university','nvarchar(100)','NULL'],['study_goal','nvarchar(200)','NULL'],['last_gpa','decimal(4,2)','NULL'],['status','varchar(10)','','ACTIVE · INACTIVE · SUSPENDED'],['created_at','datetime2',''],['last_login_at','datetime2','NULL']]},
+ {id:'exams',dom:'plan',col:1,sub:'آزمون‌های ثبت‌شده و پاسخ‌نامه',
+  note:'file_url: فایل PDF یا عکس کارنامه · با تغییر مشاور حفظ می‌شود',
+  f:[['id','int','PK'],['student_member_id','int','FK','institution_members.id'],['title','nvarchar(120)',''],['exam_number','int',''],['held_on','date',''],['description','nvarchar(500)','NULL'],['file_url','nvarchar(250)','NULL'],['file_type','varchar(5)','NULL','PDF · IMAGE'],['created_at','datetime2','']]},
+ {id:'institutions',dom:'org',col:2,sub:'پروفایل موسسه و وضعیت تأیید',
+  note:'UQ (owner_user_id) · UQ (license_number) · reviewed_at هنگام تأیید، تاریخ عضویت است',
+  f:[['id','int','PK'],['owner_user_id','int','FK UQ','users.id'],['name','nvarchar(120)',''],['license_number','varchar(30)','UQ'],['address','nvarchar(250)',''],['email','nvarchar(100)',''],['phone','varchar(15)',''],['logo_url','nvarchar(250)','NULL'],['status','varchar(10)','','PENDING · APPROVED · REJECTED · SUSPENDED'],['rejection_reason','nvarchar(300)','NULL'],['reviewed_by_user_id','int','FK NULL','users.id'],['reviewed_at','datetime2','NULL'],['created_at','datetime2','']]},
+ {id:'institution_members',dom:'org',col:2,sub:'عضویت مشاور و دانش‌آموز در موسسه و دعوت‌نامه',
+  note:'UQ (institution_id, invited_phone) · UQ (institution_id, user_id) · دانش‌آموز فقط یک عضویت دارد',
+  f:[['id','int','PK'],['institution_id','int','FK','institutions.id'],['user_id','int','FK NULL','users.id'],['member_role','varchar(10)','','ADVISOR · STUDENT'],['invited_first_name','nvarchar(50)',''],['invited_last_name','nvarchar(50)',''],['invited_phone','varchar(11)',''],['invite_code','varchar(12)','UQ'],['status','varchar(10)','','INVITED · ACTIVE · INACTIVE'],['specialty','nvarchar(80)','NULL'],['capacity','tinyint','NULL'],['major','nvarchar(60)','NULL'],['grade_level','nvarchar(40)','NULL'],['invited_at','datetime2',''],['joined_at','datetime2','NULL'],['deactivated_at','datetime2','NULL']]},
+ {id:'ticket_messages',dom:'com',col:2,sub:'پیام‌های هر تیکت و تحلیل شبانه مشاور',
+  note:'تحلیل ساعت ۲۲:۰۰ با kind = ANALYSIS ثبت می‌شود',
+  f:[['id','int','PK'],['ticket_id','int','FK','tickets.id'],['sender_role','varchar(8)','','STUDENT · ADVISOR'],['kind','varchar(10)','','QUESTION · ANSWER · ANALYSIS · FEEDBACK'],['body','nvarchar(max)',''],['is_read','bit',''],['created_at','datetime2','']]},
+ {id:'study_tasks',dom:'plan',col:3,sub:'برنامه روزانه و هفتگی به‌همراه گزارش دانش‌آموز',
+  note:'locked_at = created_at + 24h · بعد از آن برنامه فقط خواندنی است',
+  f:[['id','int','PK'],['assignment_id','int','FK','advisor_assignments.id'],['plan_date','date',''],['course_name','nvarchar(80)',''],['activity','nvarchar(200)',''],['start_time','time','NULL'],['end_time','time','NULL'],['locked_at','datetime2',''],['status','varchar(10)','','PLANNED · REPORTED'],['actual_hours','decimal(4,2)','NULL'],['test_count','int','NULL'],['student_notes','nvarchar(500)','NULL'],['reported_at','datetime2','NULL'],['created_at','datetime2','']]},
+ {id:'advisor_assignments',dom:'org',col:3,sub:'تخصیص مشاور به دانش‌آموز و تاریخچه جابجایی',
+  note:'UQ (student_member_id) WHERE is_current = 1 · سابقه هرگز حذف نمی‌شود',
+  f:[['id','int','PK'],['student_member_id','int','FK','institution_members.id'],['advisor_member_id','int','FK','institution_members.id'],['is_current','bit',''],['assigned_at','datetime2',''],['ended_at','datetime2','NULL']]},
+ {id:'counseling_sessions',dom:'plan',col:3,sub:'جلسات مشاوره و تقویم',
+  note:'',
+  f:[['id','int','PK'],['assignment_id','int','FK','advisor_assignments.id'],['title','nvarchar(120)',''],['session_date','date',''],['start_time','time',''],['duration_min','smallint',''],['status','varchar(10)','','SCHEDULED · HELD · NOT_HELD'],['notes','nvarchar(500)','NULL'],['created_at','datetime2','']]},
+ {id:'tickets',dom:'com',col:3,sub:'پرسش و پاسخ مشاور و دانش‌آموز',
+  note:'task_id اختیاری است؛ تیکت می‌تواند به گزارش یک تکلیف اشاره کند',
+  f:[['id','int','PK'],['assignment_id','int','FK','advisor_assignments.id'],['task_id','int','FK NULL','study_tasks.id'],['subject','nvarchar(150)',''],['status','varchar(10)','','OPEN · ANSWERED · CLOSED'],['created_at','datetime2',''],['closed_at','datetime2','NULL']]}
+];
+/* col order inside each column = order in T. end types: one, zeroOne, many, zeroMany (symbol sits at that entity) */
+var R = [
+ {a:['users','id','zeroOne'],b:['auth_tokens','user_id','zeroMany'],lane:0,rule:'هر کد OTP و توکن نشست به یک کاربر وصل است. پیش از ثبت‌نام، user_id خالی می‌ماند.'},
+ {a:['users','id','one'],b:['institutions','owner_user_id','zeroOne'],lane:2,rule:'هر موسسه دقیقاً یک حساب مدیر دارد و کاربر با نقش موسسه حداکثر یک موسسه.'},
+ {a:['users','id','zeroOne'],b:['institutions','reviewed_by_user_id','zeroMany'],lane:3,dash:1,rule:'ادمینی که درخواست ثبت‌نام را تأیید یا رد کرده است. تا قبل از بررسی خالی است.'},
+ {a:['institutions','id','one'],b:['institution_members','institution_id','many'],lane:3,rule:'هر موسسه چند مشاور و چند دانش‌آموز دارد و داده هر موسسه از دیگری جداست.'},
+ {a:['users','id','zeroOne'],b:['institution_members','user_id','zeroMany'],lane:0,rule:'مشاور می‌تواند عضو چند موسسه باشد و دانش‌آموز فقط یکی. تا ثبت‌نام کاربر، user_id خالی است.'},
+ {a:['institution_members','id','one'],b:['advisor_assignments','student_member_id','zeroMany'],lane:0,rule:'هر دانش‌آموز در طول زمان چند تخصیص دارد که فقط یکی از آن‌ها فعال است.'},
+ {a:['institution_members','id','one'],b:['advisor_assignments','advisor_member_id','zeroMany'],lane:1,rule:'هر مشاور همزمان چند دانش‌آموز دارد، تا سقف ظرفیت ثبت‌شده در عضویت.'},
+ {a:['institution_members','id','one'],b:['exams','student_member_id','zeroMany'],lane:1,rule:'آزمون‌ها متعلق به دانش‌آموزند و با تغییر مشاور از بین نمی‌روند.'},
+ {a:['advisor_assignments','id','one'],b:['study_tasks','assignment_id','zeroMany'],lane:0,rule:'برنامه روزانه و هفتگی تحت تخصیص ثبت می‌شود. مشاور برنامه را می‌نویسد و دانش‌آموز گزارش می‌دهد.'},
+ {a:['advisor_assignments','id','one'],b:['counseling_sessions','assignment_id','zeroMany'],lane:1,rule:'جلسات مشاوره بین مشاور و دانش‌آموز همان تخصیص برگزار می‌شود.'},
+ {a:['advisor_assignments','id','one'],b:['tickets','assignment_id','zeroMany'],lane:2,rule:'تیکت‌ها بین دانش‌آموز و مشاور آن تخصیص رد و بدل می‌شود و بعد از جابجایی برای مشاور جدید قابل مشاهده است.'},
+ {a:['study_tasks','id','zeroOne'],b:['tickets','task_id','zeroMany'],lane:3,rule:'تیکت می‌تواند به گزارش یک تکلیف روزانه اشاره کند و این ارتباط اختیاری است.'},
+ {a:['tickets','id','one'],b:['ticket_messages','ticket_id','many'],lane:2,rule:'هر تیکت یک رشته پیام شامل سؤال، پاسخ، تحلیل و بازخورد است.'}
+];
+</script>
+
+<script>
+/* ---------- render ---------- */
+var CW = 320, GAP = 80, GY = 40, LAST = 3, LS = 16;
+var stage = document.getElementById('stage');
+var view = document.getElementById('view');
+var canvas = document.getElementById('canvas');
+var scale = 1, SW = 0, SH = 0;
+var byId = {}; T.forEach(function(t){ byId[t.id] = t; });
+var END = {one:'1', zeroOne:'0..1', many:'1..N', zeroMany:'0..N'};
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+
+function sym(x, y, d, type, c){
+  var s = '', bar = function(o){ return '<line class="sym" stroke="'+c+'" x1="'+(x+d*o)+'" y1="'+(y-6)+'" x2="'+(x+d*o)+'" y2="'+(y+6)+'"/>'; };
+  var foot = function(){ return '<path class="sym" stroke="'+c+'" d="M'+(x+d*14)+' '+y+' L'+x+' '+(y-7)+' M'+(x+d*14)+' '+y+' L'+x+' '+y+' M'+(x+d*14)+' '+y+' L'+x+' '+(y+7)+'"/>'; };
+  var dot = function(){ return '<circle class="dot" stroke="'+c+'" cx="'+(x+d*21)+'" cy="'+y+'" r="4"/>'; };
+  if (type === 'one') s = bar(9) + bar(15);
+  else if (type === 'zeroOne') s = bar(9) + dot();
+  else if (type === 'many') s = foot() + bar(18);
+  else s = foot() + dot();
+  return s;
+}
+
+function cardHTML(t){
+  var rows = t.f.map(function(f){
+    var fl = f[2].split(' '), isPk = fl.indexOf('PK') > -1, isFk = fl.indexOf('FK') > -1, isUq = fl.indexOf('UQ') > -1, isNull = fl.indexOf('NULL') > -1;
+    var badge = isPk ? 'PK' : isFk ? 'FK' : isUq ? 'UQ' : '';
+    var tags = (isUq && isFk ? '<em>UQ</em>' : '') + (isNull ? '<em>null</em>' : '');
+    var extra = f[3] ? '<div class="v">' + (isFk ? '→ ' : '') + esc(f[3]) + '</div>' : '';
+    return '<div class="row' + (isPk ? ' pk' : isFk ? ' fk' : '') + '" data-f="' + f[0] + '">' +
+      '<span class="b ' + badge + '">' + badge + '</span><span class="n">' + f[0] + '</span><span class="t">' + esc(f[1]) + tags + '</span>' + extra + '</div>';
+  }).join('');
+  return '<div class="card-h"><h3>' + t.id + '<small>' + t.f.length + ' cols</small></h3><p>' + t.sub + '</p></div>' +
+    '<div class="fields">' + rows + '</div>' + (t.note ? '<div class="note">' + t.note + '</div>' : '');
+}
+
+function build(){
+  stage.innerHTML = '';
+  var links = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  links.id = 'links';
+  stage.appendChild(links);
+  T.forEach(function(t){
+    var el = document.createElement('div');
+    el.className = 'card'; el.id = 'c-' + t.id;
+    el.style.setProperty('--c', DOM[t.dom].c);
+    el.style.left = (t.col * (CW + GAP)) + 'px';
+    el.innerHTML = cardHTML(t);
+    stage.appendChild(el);
+    t.el = el;
+  });
+  /* stack cards per column */
+  var ys = {}; SH = 0;
+  T.forEach(function(t){
+    var y = ys[t.col] || 0;
+    t.y = y; t.el.style.top = y + 'px';
+    t.h = t.el.offsetHeight;
+    ys[t.col] = y + t.h + GY;
+    SH = Math.max(SH, y + t.h);
+  });
+  SW = (LAST + 1) * CW + LAST * GAP + 130; SH += 24;
+  stage.style.width = SW + 'px'; stage.style.height = SH + 'px';
+  links.setAttribute('width', SW); links.setAttribute('height', SH);
+  links.setAttribute('viewBox', '0 0 ' + SW + ' ' + SH);
+  route(links);
+  fit();
+}
+
+function anchor(t, field){
+  var row = t.el.querySelector('[data-f="' + field + '"]');
+  return t.y + row.offsetTop + 11;
+}
+
+function route(svg){
+  var groups = {}, spread = {};
+  R.forEach(function(r){
+    var A = byId[r.a[0]], B = byId[r.b[0]];
+    r.g = A.col !== B.col ? Math.min(A.col, B.col) : (A.col < LAST ? A.col : 'R');
+    groups[r.g] = (groups[r.g] || 0) + 1;
+    if (A.col < B.col){ r.sa = 1; r.sb = -1; }
+    else if (A.col > B.col){ r.sa = -1; r.sb = 1; }
+    else { r.sa = 1; r.sb = 1; }
+    r.ka = r.a[0] + '.' + r.a[1] + '.' + r.sa;
+    r.kb = r.b[0] + '.' + r.b[1] + '.' + r.sb;
+    spread[r.ka] = (spread[r.ka] || 0) + 1;
+    spread[r.kb] = (spread[r.kb] || 0) + 1;
+  });
+  var seen = {}, out = '';
+  var palette = ['#b45cff','#27d8ff','#7d5cff','#3d86ff'];
+  R.forEach(function(r, i){
+    var A = byId[r.a[0]], B = byId[r.b[0]], c = palette[i % 4];
+    var ia = seen[r.ka] = (seen[r.ka] === undefined ? 0 : seen[r.ka] + 1);
+    var ib = seen[r.kb] = (seen[r.kb] === undefined ? 0 : seen[r.kb] + 1);
+    var y1 = anchor(A, r.a[1]) + (ia - (spread[r.ka] - 1) / 2) * 6;
+    var y2 = anchor(B, r.b[1]) + (ib - (spread[r.kb] - 1) / 2) * 6;
+    var x1 = A.col * (CW + GAP) + (r.sa > 0 ? CW : 0);
+    var x2 = B.col * (CW + GAP) + (r.sb > 0 ? CW : 0);
+    var lx = r.g === 'R'
+      ? LAST * (CW + GAP) + CW + 30 + r.lane * LS
+      : r.g * (CW + GAP) + CW + GAP / 2 + (r.lane - (groups[r.g] - 1) / 2) * LS;
+    out += '<g class="rg" data-i="' + i + '" data-a="' + A.id + '" data-b="' + B.id + '" style="transition:opacity .15s">' +
+      '<path class="rel" stroke="' + c + '"' + (r.dash ? ' stroke-dasharray="6 5"' : '') +
+      ' style="filter:drop-shadow(0 0 3px ' + c + ')" d="M' + x1 + ' ' + y1 + ' H' + lx + ' V' + y2 + ' H' + x2 + '"/>' +
+      sym(x1, y1, r.sa, r.a[2], c) + sym(x2, y2, r.sb, r.b[2], c) + '</g>';
+  });
+  svg.innerHTML = out;
+}
+
+/* ---------- zoom ---------- */
+function apply(){
+  stage.style.transform = 'scale(' + scale + ')';
+  view.style.width = Math.round(SW * scale) + 'px';
+  view.style.height = Math.round(SH * scale) + 'px';
+}
+function fit(){
+  var w = canvas.clientWidth || 1200;
+  scale = Math.max(.5, Math.min(1, w / SW));
+  apply();
+}
+function zoom(d){ scale = Math.max(.4, Math.min(1.4, +(scale + d).toFixed(2))); apply(); }
+document.getElementById('zin').onclick = function(){ zoom(.1); };
+document.getElementById('zout').onclick = function(){ zoom(-.1); };
+document.getElementById('zfit').onclick = fit;
+
+/* ---------- highlight ---------- */
+function focusTables(ids){
+  var gs = document.querySelectorAll('#links .rg');
+  Array.prototype.forEach.call(gs, function(g){
+    var on = ids.indexOf(g.dataset.a) > -1 && ids.indexOf(g.dataset.b) > -1;
+    g.classList.toggle('dim', ids.length > 0 && !on);
+  });
+  T.forEach(function(t){
+    var touched = ids.length === 0 || ids.indexOf(t.id) > -1;
+    t.el.classList.toggle('dim', !touched);
+  });
+}
+function wireHover(){
+  T.forEach(function(t){
+    t.el.addEventListener('mouseenter', function(){
+      var ids = [t.id];
+      R.forEach(function(r){ if (r.a[0] === t.id) ids.push(r.b[0]); if (r.b[0] === t.id) ids.push(r.a[0]); });
+      var gs = document.querySelectorAll('#links .rg');
+      Array.prototype.forEach.call(gs, function(g){ g.classList.toggle('dim', g.dataset.a !== t.id && g.dataset.b !== t.id); });
+      T.forEach(function(o){ o.el.classList.toggle('dim', ids.indexOf(o.id) < 0); });
+    });
+    t.el.addEventListener('mouseleave', function(){ focusTables([]); });
+  });
+}
+
+/* ---------- panels ---------- */
+function panels(){
+  var fields = T.reduce(function(n, t){ return n + t.f.length; }, 0);
+  document.getElementById('stats').innerHTML =
+    '<div class="stat"><b>' + T.length + '</b><span>جدول</span></div>' +
+    '<div class="stat"><b>' + R.length + '</b><span>رابطه</span></div>' +
+    '<div class="stat"><b>' + fields + '</b><span>ستون</span></div>';
+
+  var lg = Object.keys(DOM).map(function(k){
+    return '<span><i style="background:' + DOM[k].c + ';box-shadow:0 0 8px ' + DOM[k].c + '"></i>' + DOM[k].name + '</span>';
+  }).join('');
+  var items = [['one','دقیقاً یک'],['zeroOne','صفر یا یک'],['many','یک یا چند'],['zeroMany','صفر یا چند']];
+  lg += items.map(function(s){
+    return '<span style="display:inline-flex;align-items:center;gap:6px"><svg width="46" height="18" viewBox="0 0 46 18" aria-hidden="true"><line x1="0" y1="9" x2="36" y2="9" stroke="#8f89c9" stroke-width="1.8"/>' +
+      sym(36, 9, -1, s[0], '#8f89c9') + '</svg>' + s[1] + '</span>';
+  }).join('');
+  lg += '<span><svg width="40" height="10" viewBox="0 0 40 10" aria-hidden="true" style="vertical-align:-1px;margin-inline-end:6px"><line x1="0" y1="5" x2="40" y2="5" stroke="#8f89c9" stroke-width="1.8" stroke-dasharray="6 5"/></svg>رابطه اختیاری</span>';
+  document.getElementById('legend').innerHTML = lg;
+
+  document.getElementById('rels').innerHTML = R.map(function(r, i){
+    return '<tr class="r" data-a="' + r.a[0] + '" data-b="' + r.b[0] + '"><td>' + (i + 1) + '</td>' +
+      '<td><code>' + r.b[0] + '.' + r.b[1] + ' → ' + r.a[0] + '.' + r.a[1] + '</code></td>' +
+      '<td><span class="card-pill">' + r.a[0] + ' ' + END[r.a[2]] + ' : ' + END[r.b[2]] + ' ' + r.b[0] + '</span></td>' +
+      '<td>' + r.rule + '</td></tr>';
+  }).join('');
+  Array.prototype.forEach.call(document.querySelectorAll('#rels tr'), function(tr){
+    tr.addEventListener('mouseenter', function(){ focusTables([tr.dataset.a, tr.dataset.b]); });
+    tr.addEventListener('mouseleave', function(){ focusTables([]); });
+  });
+}
+
+panels();
+build();
+wireHover();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ build(); wireHover(); });
+var rt; window.addEventListener('resize', function(){ clearTimeout(rt); rt = setTimeout(fit, 150); });
+</script>
+
+</body></html>
